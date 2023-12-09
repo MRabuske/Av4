@@ -1,0 +1,246 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+typedef struct Veiculo {
+    char proprietario[50];
+    char combustivel[20];
+    char modelo[50];
+    char cor[20];
+    char chassi[20];
+    int ano;
+    char placa[8];
+    struct Veiculo *prox;
+    struct Veiculo *ant;
+} Veiculo;
+
+Veiculo *criarVeiculo(char *proprietario, char *combustivel, char *modelo, char *cor, char *chassi, int ano, char *placa);
+void inserirVeiculo(Veiculo **lista, Veiculo *veiculo);
+void listarVeiculos(Veiculo *lista);
+void listarDiesel2010(Veiculo *lista);
+void listarPlacasJ(Veiculo *lista);
+void listarModeloCorVogal(Veiculo *lista);
+void trocarProprietario(Veiculo *lista, char *chassi);
+void salvarVeiculos(Veiculo *lista);
+Veiculo *carregarVeiculos();
+
+int main() {
+    Veiculo *listaVeiculos = carregarVeiculos();
+
+    int opcao;
+    do {
+        printf("\n======= MENU =======\n");
+        printf("1. Inserir Veículo\n");
+        printf("2. Listar Veículos\n");
+        printf("3. Listar Diesel 2010\n");
+        printf("4. Listar Placas J\n");
+        printf("5. Listar Modelo/Cor Vogal\n");
+        printf("6. Trocar Proprietário\n");
+        printf("7. Salvar Veículos\n");
+        printf("0. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1: {
+                char proprietario[50], combustivel[20], modelo[50], cor[20], chassi[20], placa[8];
+                int ano;
+
+                printf("Digite o Proprietário: ");
+                scanf(" %[^\n]", proprietario);
+
+                printf("Digite o Combustível: ");
+                scanf(" %[^\n]", combustivel);
+
+                printf("Digite o Modelo: ");
+                scanf(" %[^\n]", modelo);
+
+                printf("Digite a Cor: ");
+                scanf(" %[^\n]", cor);
+
+                printf("Digite o Chassi: ");
+                scanf(" %[^\n]", chassi);
+
+                printf("Digite o Ano: ");
+                scanf("%d", &ano);
+
+                printf("Digite a Placa: ");
+                scanf(" %[^\n]", placa);
+
+                Veiculo *novoVeiculo = criarVeiculo(proprietario, combustivel, modelo, cor, chassi, ano, placa);
+                inserirVeiculo(&listaVeiculos, novoVeiculo);
+                break;
+            }
+            case 2:
+                listarVeiculos(listaVeiculos);
+                break;
+            case 3:
+                listarDiesel2010(listaVeiculos);
+                break;
+            case 4:
+                listarPlacasJ(listaVeiculos);
+                break;
+            case 5:
+                listarModeloCorVogal(listaVeiculos);
+                break;
+            case 6: {
+                char chassi[20];
+                printf("Digite o Chassi do veículo para trocar o proprietário: ");
+                scanf(" %[^\n]", chassi);
+                trocarProprietario(listaVeiculos, chassi);
+                break;
+            }
+            case 7:
+                salvarVeiculos(listaVeiculos);
+                break;
+            case 0:
+                printf("Saindo do programa.\n");
+                break;
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+        }
+
+    } while (opcao != 0);
+
+    while (listaVeiculos != NULL) {
+        Veiculo *prox = listaVeiculos->prox;
+        free(listaVeiculos);
+        listaVeiculos = prox;
+    }
+
+    return 0;
+}
+
+Veiculo *criarVeiculo(char *proprietario, char *combustivel, char *modelo, char *cor, char *chassi, int ano, char *placa) {
+    Veiculo *novoVeiculo = (Veiculo *)malloc(sizeof(Veiculo));
+    if (novoVeiculo != NULL) {
+        strcpy(novoVeiculo->proprietario, proprietario);
+        strcpy(novoVeiculo->combustivel, combustivel);
+        strcpy(novoVeiculo->modelo, modelo);
+        strcpy(novoVeiculo->cor, cor);
+        strcpy(novoVeiculo->chassi, chassi);
+        novoVeiculo->ano = ano;
+        strcpy(novoVeiculo->placa, placa);
+        novoVeiculo->prox = NULL;
+        novoVeiculo->ant = NULL;
+    }
+    return novoVeiculo;
+}
+
+void inserirVeiculo(Veiculo **lista, Veiculo *veiculo) {
+    if (*lista == NULL) {
+        *lista = veiculo;
+    } else {
+        Veiculo *atual = *lista;
+        while (atual->prox != NULL) {
+            atual = atual->prox;
+        }
+        atual->prox = veiculo;
+        veiculo->ant = atual;
+    }
+}
+
+void listarVeiculos(Veiculo *lista) {
+    printf("\n======= LISTA DE VEÍCULOS =======\n");
+    while (lista != NULL) {
+        printf("Proprietário: %s | Combustível: %s | Modelo: %s | Cor: %s | Chassi: %s | Ano: %d | Placa: %s\n",
+               lista->proprietario, lista->combustivel, lista->modelo, lista->cor, lista->chassi, lista->ano, lista->placa);
+        lista = lista->prox;
+    }
+}
+
+void listarDiesel2010(Veiculo *lista) {
+    printf("\n======= LISTA DE VEÍCULOS DIESEL 2010 OU POSTERIOR =======\n");
+    while (lista != NULL) {
+        if (lista->ano >= 2010 && strcmp(lista->combustivel, "diesel") == 0) {
+            printf("Proprietário: %s\n", lista->proprietario);
+        }
+        lista = lista->prox;
+    }
+}
+
+void listarPlacasJ(Veiculo *lista) {
+    printf("\n======= LISTA DE VEÍCULOS COM PLACAS J =======\n");
+    while (lista != NULL) {
+        if (lista->placa[0] == 'J' &&
+            (lista->placa[7] == '0' || lista->placa[7] == '2' ||
+             lista->placa[7] == '4' || lista->placa[7] == '7')) {
+            printf("Placa: %s, Proprietário: %s\n", lista->placa, lista->proprietario);
+        }
+        lista = lista->prox;
+    }
+}
+
+void listarModeloCorVogal(Veiculo *lista) {
+    printf("\n======= LISTA DE VEÍCULOS COM MODELO/COR VOGAL E SOMA DE DÍGITOS PAR =======\n");
+    while (lista != NULL) {
+        if (strchr("AEIOUaeiou", lista->placa[1]) != NULL) {
+            int somaDigitos = 0;
+            for (int i = 0; i < 7; i++) {
+                if (isdigit(lista->placa[i])) {
+                    somaDigitos += lista->placa[i] - '0';
+                }
+            }
+            if (somaDigitos % 2 == 0) {
+                printf("Modelo: %s, Cor: %s\n", lista->modelo, lista->cor);
+            }
+        }
+        lista = lista->prox;
+    }
+}
+
+void trocarProprietario(Veiculo *lista, char *chassi) {
+    while (lista != NULL) {
+        if (strcmp(lista->chassi, chassi) == 0 && strchr(lista->placa, '0') == NULL) {
+            printf("Digite o novo proprietário para o veículo: ");
+            scanf(" %[^\n]", lista->proprietario);
+            printf("Proprietário atualizado com sucesso.\n");
+            return;
+        }
+        lista = lista->prox;
+    }
+    printf("Veículo com chassi %s não encontrado ou possui dígito 0 na placa.\n", chassi);
+}
+
+void salvarVeiculos(Veiculo *lista) {
+    FILE *arquivo = fopen("veiculos.txt", "w");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo para escrita.\n");
+        return;
+    }
+
+    while (lista != NULL) {
+        fprintf(arquivo, "%s|%s|%s|%s|%s|%d|%s\n",
+                lista->proprietario, lista->combustivel, lista->modelo, lista->cor, lista->chassi, lista->ano, lista->placa);
+        lista = lista->prox;
+    }
+
+    fclose(arquivo);
+    printf("Veículos salvos com sucesso.\n");
+}
+
+Veiculo *carregarVeiculos() {
+    Veiculo *lista = NULL;
+
+    FILE *arquivo = fopen("veiculos.txt", "r");
+    if (arquivo == NULL) {
+        printf("Arquivo de veículos não encontrado. Será criado um novo arquivo.\n");
+        return lista;
+    }
+
+    while (!feof(arquivo)) {
+        char proprietario[50], combustivel[20], modelo[50], cor[20], chassi[20], placa[8];
+        int ano;
+
+        if (fscanf(arquivo, "%49[^|]|%19[^|]|%49[^|]|%19[^|]|%19[^|]|%d|%7[^\n]\n",
+                   proprietario, combustivel, modelo, cor, chassi, &ano, placa) == 7) {
+            Veiculo *novoVeiculo = criarVeiculo(proprietario, combustivel, modelo, cor, chassi, ano, placa);
+            inserirVeiculo(&lista, novoVeiculo);
+        }
+    }
+
+    fclose(arquivo);
+    printf("Veículos carregados com sucesso.\n");
+    return lista;
+}
